@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SpaceApp'),
+        title: const Text('CosmoPulse'),
       ),
       body: _buildBody(),
     );

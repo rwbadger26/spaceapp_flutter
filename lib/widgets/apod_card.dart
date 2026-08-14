@@ -46,13 +46,23 @@ class _ApodCardState extends State<ApodCard> {
                   color: Colors.white.withOpacity(0.6),
                 ),
               ),
+              const SizedBox(height: 4),
+              Text(
+                'Source: NASA APOD',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.45),
+                ),
+              ),
               const SizedBox(height: 12),
 
               // Short or full explanation
               Text(
                 widget.apod.explanation,
                 maxLines: _isExpanded ? null : 3,
-                overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                overflow: _isExpanded
+                    ? TextOverflow.visible
+                    : TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 15,
                   color: Colors.white70,
