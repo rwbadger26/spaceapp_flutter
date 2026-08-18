@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/apod.dart';
 
+/// One expandable APOD card.
+/// StatefulWidget is used only because this card needs to remember
+/// whether it is expanded. The rest of the app does not need that state.
 class ApodCard extends StatefulWidget {
   final Apod apod;
 
@@ -15,11 +18,14 @@ class _ApodCardState extends State<ApodCard> {
 
   @override
   Widget build(BuildContext context) {
+    // widget.apod is how the State class reads data passed into ApodCard.
     final hasImage = widget.apod.mediaType == 'image' && widget.apod.url != null;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
+        // InkWell gives a tap ripple. We use it instead of GestureDetector
+        // because it looks more like a real Material card.
         onTap: () {
           setState(() {
             _isExpanded = !_isExpanded;
@@ -29,7 +35,8 @@ class _ApodCardState extends State<ApodCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image (only if available)
+            // "if" inside a children list is a Flutter feature:
+            // the image widget is only added when hasImage is true.
             if (hasImage)
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
@@ -38,7 +45,6 @@ class _ApodCardState extends State<ApodCard> {
                   height: 180,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  // Show a loading placeholder while the image downloads
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return Container(
@@ -49,7 +55,6 @@ class _ApodCardState extends State<ApodCard> {
                       ),
                     );
                   },
-                  // Fallback if the image fails to load
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       height: 180,
@@ -62,7 +67,6 @@ class _ApodCardState extends State<ApodCard> {
                 ),
               ),
 
-            // Text content
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -95,8 +99,11 @@ class _ApodCardState extends State<ApodCard> {
                   const SizedBox(height: 12),
                   Text(
                     widget.apod.explanation,
+                    // null maxLines = show the full text
                     maxLines: _isExpanded ? null : 3,
-                    overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                    overflow: _isExpanded
+                        ? TextOverflow.visible
+                        : TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 15,
                       color: Colors.white70,

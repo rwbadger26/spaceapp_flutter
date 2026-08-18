@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 
+/// First screen the user sees.
+/// We keep it simple for now: show the logo, wait, then go to HomeScreen.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -12,9 +14,14 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Wait 2 seconds then go to HomeScreen
+
+    // Future.delayed waits without blocking the UI.
     Future.delayed(const Duration(seconds: 2), () {
+      // mounted is important: the widget might have been closed
+      // before the 2 seconds finish.
       if (mounted) {
+        // pushReplacement removes the splash from the back stack,
+        // so the user cannot swipe back to it.
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
@@ -30,7 +37,6 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo
             Image.asset(
               'assets/images/cosmopulse.jpg',
               width: 180,
