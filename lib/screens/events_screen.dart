@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/event.dart';
 import '../services/event_service.dart';
+import '../widgets/event_card.dart';
 
 class EventsScreen extends StatelessWidget {
   const EventsScreen({super.key});
@@ -16,15 +16,7 @@ class EventsScreen extends StatelessWidget {
       body: ListView.builder(
         itemCount: events.length,
         itemBuilder: (context, index) {
-          final Event event = events[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: ListTile(
-              title: Text(event.title),
-              subtitle: Text('${event.date}  •  ${event.type}'),
-              trailing: Text(event.agency ?? ''),
-            ),
-          );
+          return EventCard(event: events[index]);
         },
       ),
     );
