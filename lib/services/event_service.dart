@@ -73,7 +73,8 @@ class EventService {
           title: map['name'] ?? 'Upcoming launch',
           date: date,
           type: 'launch',
-          summary: map['mission']?['description'] ??
+          summary:
+              map['mission']?['description'] ??
               'No mission description available.',
           source: 'Launch Library 2',
           agency: map['launch_service_provider']?['name'] as String?,
@@ -81,9 +82,15 @@ class EventService {
         );
       }).toList();
 
-      final skyEvents =
-          getSampleEvents().where((event) => event.type == 'sky').toList();
-      final events = [...launches, ...skyEvents];
+      final majorLaunches = launches.where((event) {
+        final title = event.title.toLowerCase();
+        return !title.contains('starlink') && !title.contains('oneweb');
+      }).toList();
+
+      final skyEvents = getSampleEvents()
+          .where((event) => event.type == 'sky')
+          .toList();
+      final events = [...majorLaunches, ...skyEvents];
 
       await _saveCache(prefs, events);
       return events;
