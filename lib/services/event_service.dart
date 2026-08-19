@@ -42,7 +42,7 @@ class EventService {
     ];
   }
 
-  Future<List<Event>> fetchEvents({bool forceRefresh = false}) async {
+  Future<List<Event>> fetchEvents({bool forceRefresh = true}) async {
     final prefs = await SharedPreferences.getInstance();
 
     if (!forceRefresh) {
