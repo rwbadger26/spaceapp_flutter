@@ -7,4 +7,6 @@ class Constants {
   static const String apodBaseUrl = 'https://api.nasa.gov/planetary/apod';
   static const String launchLibraryUrl =
       'https://ll.thespacedevs.com/2.3.0/launches/upcoming/?limit=40'; //static const String apodBaseUrl = 'pogger';
+  static const String spaceNewsUrl =
+    'https://api.spaceflightnewsapi.net/v4/articles/?limit=15';
 }

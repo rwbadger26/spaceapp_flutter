@@ -1,17 +1,58 @@
 import 'package:flutter/material.dart';
+import '../models/news_article.dart';
+import '../services/news_service.dart';
+import '../widgets/news_card.dart';
+import '../widgets/loading_error_widgets.dart';
 
-class MoreScreen extends StatelessWidget {
+class MoreScreen extends StatefulWidget {
   const MoreScreen({super.key});
 
   @override
+  State<MoreScreen> createState() => _MoreScreenState();
+}
+
+class _MoreScreenState extends State<MoreScreen> {
+  final NewsService _newsService = NewsService();
+  List<NewsArticle> _articles = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadArticles();
+  }
+
+  Future<void> _loadArticles() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final articles = await _newsService.fetchArticles();
+
+    setState(() {
+      _articles = articles;
+      _isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text(
-          'More coming soon',
-          style: TextStyle(color: Colors.white70, fontSize: 18),
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('More'),
       ),
+      body: _isLoading
+          ? const LoadingWidget()
+          : RefreshIndicator(
+              onRefresh: _loadArticles,
+              color: const Color(0xFF64B5F6),
+              child: ListView.builder(
+                itemCount: _articles.length,
+                itemBuilder: (context, index) {
+                  return NewsCard(article: _articles[index]);
+                },
+              ),
+            ),
     );
   }
 }
