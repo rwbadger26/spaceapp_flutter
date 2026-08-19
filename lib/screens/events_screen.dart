@@ -22,12 +22,12 @@ class _EventsScreenState extends State<EventsScreen> {
     _loadEvents();
   }
 
-  Future<void> _loadEvents() async {
+  Future<void> _loadEvents({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
     });
 
-    final events = await _eventService.fetchEvents();
+    final events = await _eventService.fetchEvents(forceRefresh: forceRefresh);
 
     setState(() {
       _events = events;
@@ -38,13 +38,11 @@ class _EventsScreenState extends State<EventsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Events'),
-      ),
+      appBar: AppBar(title: const Text('Events')),
       body: _isLoading
           ? const LoadingWidget()
           : RefreshIndicator(
-              onRefresh: _loadEvents,
+              onRefresh: () => _loadEvents(forceRefresh: true),
               color: const Color(0xFF64B5F6),
               child: ListView.builder(
                 itemCount: _events.length,
