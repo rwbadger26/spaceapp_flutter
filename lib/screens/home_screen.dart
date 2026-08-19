@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadApods();
   }
 
-  Future<void> _loadApods() async {
+  Future<void> _loadApods({bool forceRefresh = false}) async {
     // Show spinner and clear any previous error.
     setState(() {
       _isLoading = true;
@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final apods = await _apodService.fetchRecentApods();
+      final apods = await _apodService.fetchRecentApods(forceRefresh: forceRefresh);
 
       // setState tells Flutter: "data changed, please rebuild the UI"
       setState(() {
@@ -82,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // RefreshIndicator gives us pull-to-refresh for free.
     return RefreshIndicator(
-      onRefresh: _loadApods,
+      onRefresh: () => _loadApods(forceRefresh: true),
       color: const Color(0xFF64B5F6),
       child: ListView.builder(
         itemCount: _apods.length,

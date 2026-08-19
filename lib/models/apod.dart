@@ -2,9 +2,9 @@ class Apod {
   final String title;
   final String explanation;
   final String date;
-  final String? url;          // image or video url
-  final String? hdurl;        // high-res image (sometimes null)
-  final String mediaType;     // "image" or "video"
+  final String? url; // image or video url
+  final String? hdurl; // high-res image (sometimes null)
+  final String mediaType; // "image" or "video"
 
   Apod({
     required this.title,
@@ -25,5 +25,16 @@ class Apod {
       hdurl: json['hdurl'],
       mediaType: json['media_type'] ?? 'image',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'explanation': explanation,
+      'date': date,
+      'url': url,
+      'hdurl': hdurl,
+      'media_type': mediaType,
+    };
   }
 }

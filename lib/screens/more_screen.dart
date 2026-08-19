@@ -22,12 +22,14 @@ class _MoreScreenState extends State<MoreScreen> {
     _loadArticles();
   }
 
-  Future<void> _loadArticles() async {
+  Future<void> _loadArticles({bool forceRefresh = false}) async {
     setState(() {
       _isLoading = true;
     });
 
-    final articles = await _newsService.fetchArticles();
+    final articles = await _newsService.fetchArticles(
+      forceRefresh: forceRefresh,
+    );
 
     setState(() {
       _articles = articles;
@@ -38,13 +40,11 @@ class _MoreScreenState extends State<MoreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('More'),
-      ),
+      appBar: AppBar(title: const Text('More')),
       body: _isLoading
           ? const LoadingWidget()
           : RefreshIndicator(
-              onRefresh: _loadArticles,
+              onRefresh: () => _loadArticles(forceRefresh: true),
               color: const Color(0xFF64B5F6),
               child: ListView.builder(
                 itemCount: _articles.length,

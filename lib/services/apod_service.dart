@@ -2,8 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/apod.dart';
 import '../utils/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApodService {
+  static const _apodsKey = 'cached_apods';
+  static const _fetchedAtKey = 'apods_fetched_at';
+  static const _cacheFor = Duration(hours: 12);
   static final List<Apod> _fallbackApods = [
     Apod(
       title: 'The Pillars of Creation',
@@ -39,7 +43,7 @@ class ApodService {
     return '${date.year}-${two(date.month)}-${two(date.day)}';
   }
 
-  Future<List<Apod>> fetchRecentApods() async {
+  Future<List<Apod>> fetchRecentApods({bool forceRefresh = false}) async {
     try {
       final end = DateTime.now().toUtc();
       final start = end.subtract(const Duration(days: 19));
@@ -49,9 +53,7 @@ class ApodService {
         '&start_date=${_ymd(start)}&end_date=${_ymd(end)}',
       );
 
-      final response = await http
-          .get(url)
-          .timeout(const Duration(seconds: 8));
+      final response = await http.get(url).timeout(const Duration(seconds: 8));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
