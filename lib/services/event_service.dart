@@ -1,9 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/event.dart';
 import '../utils/constants.dart';
 
 class EventService {
+  static const _eventsKey = 'cached_events';
+  static const _fetchedAtKey = 'events_fetched_at';
+  static const _cacheFor = Duration(hours: 12);
+
   List<Event> getSampleEvents() {
     return [
       Event(
@@ -37,14 +42,21 @@ class EventService {
     ];
   }
 
-  Future<List<Event>> fetchEvents() async {
+  Future<List<Event>> fetchEvents({bool forceRefresh = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (!forceRefresh) {
+      final cached = _readCache(prefs);
+      if (cached != null) return cached;
+    }
+
     try {
       final response = await http
           .get(Uri.parse(Constants.launchLibraryUrl))
           .timeout(const Duration(seconds: 8));
 
       if (response.statusCode != 200) {
-        return getSampleEvents();
+        return _readCache(prefs) ?? getSampleEvents();
       }
 
       final Map<String, dynamic> data = json.decode(response.body);
@@ -69,14 +81,37 @@ class EventService {
         );
       }).toList();
 
-      // Keep the curated sky event at the end for now
       final skyEvents =
           getSampleEvents().where((event) => event.type == 'sky').toList();
+      final events = [...launches, ...skyEvents];
 
-      return [...launches, ...skyEvents];
+      await _saveCache(prefs, events);
+      return events;
     } catch (e) {
-      print('Launch API failed: $e');
-      return getSampleEvents();
+      return _readCache(prefs) ?? getSampleEvents();
     }
+  }
+
+  List<Event>? _readCache(SharedPreferences prefs) {
+    final fetchedAtMs = prefs.getInt(_fetchedAtKey);
+    final jsonString = prefs.getString(_eventsKey);
+
+    if (fetchedAtMs == null || jsonString == null) return null;
+
+    final age = DateTime.now().difference(
+      DateTime.fromMillisecondsSinceEpoch(fetchedAtMs),
+    );
+    if (age > _cacheFor) return null;
+
+    final List<dynamic> data = json.decode(jsonString);
+    return data
+        .map((item) => Event.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> _saveCache(SharedPreferences prefs, List<Event> events) async {
+    final jsonString = json.encode(events.map((e) => e.toJson()).toList());
+    await prefs.setString(_eventsKey, jsonString);
+    await prefs.setInt(_fetchedAtKey, DateTime.now().millisecondsSinceEpoch);
   }
 }
