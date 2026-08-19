@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/news_article.dart';
 
 class NewsCard extends StatelessWidget {
@@ -6,48 +7,79 @@ class NewsCard extends StatelessWidget {
 
   const NewsCard({super.key, required this.article});
 
+  Future<void> _openArticle() async {
+    if (article.url == null) return;
+    final uri = Uri.parse(article.url!);
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasImage = article.imageUrl != null && article.imageUrl!.isNotEmpty;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      child: InkWell(
+        onTap: _openArticle,
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              article.source,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF64B5F6),
+            if (hasImage)
+              ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
+                child: Image.network(
+                  article.imageUrl!,
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const SizedBox.shrink();
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              article.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              article.date,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white.withOpacity(0.6),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              article.summary,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 15,
-                color: Colors.white70,
-                height: 1.4,
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    article.source,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF64B5F6),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    article.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    article.date,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    article.summary,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Colors.white70,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
