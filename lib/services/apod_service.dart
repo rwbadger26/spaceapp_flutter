@@ -44,6 +44,13 @@ class ApodService {
   }
 
   Future<List<Apod>> fetchRecentApods({bool forceRefresh = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (!forceRefresh) {
+      final cached = _readCache(prefs);
+      if (cached != null) return cached;
+    }
+
     try {
       final end = DateTime.now().toUtc();
       final start = end.subtract(const Duration(days: 19));
@@ -55,17 +62,40 @@ class ApodService {
 
       final response = await http.get(url).timeout(const Duration(seconds: 8));
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final apods = data.map((json) => Apod.fromJson(json)).toList();
-
-        // NASA returns oldest → newest. Reverse so today is first.
-        return apods.reversed.toList();
-      } else {
-        return _fallbackApods;
+      if (response.statusCode != 200) {
+        return _readCache(prefs) ?? _fallbackApods;
       }
+
+      final List<dynamic> data = json.decode(response.body);
+      final apods = data.map((json) => Apod.fromJson(json)).toList();
+      final latestFirst = apods.reversed.toList();
+
+      await _saveCache(prefs, latestFirst);
+      return latestFirst;
     } catch (e) {
-      return _fallbackApods;
+      return _readCache(prefs) ?? _fallbackApods;
     }
+  }
+
+  List<Apod>? _readCache(SharedPreferences prefs) {
+    final fetchedAtMs = prefs.getInt(_fetchedAtKey);
+    final jsonString = prefs.getString(_apodsKey);
+    if (fetchedAtMs == null || jsonString == null) return null;
+
+    final age = DateTime.now().difference(
+      DateTime.fromMillisecondsSinceEpoch(fetchedAtMs),
+    );
+    if (age > _cacheFor) return null;
+
+    final List<dynamic> data = json.decode(jsonString);
+    return data
+        .map((item) => Apod.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> _saveCache(SharedPreferences prefs, List<Apod> apods) async {
+    final jsonString = json.encode(apods.map((apod) => apod.toJson()).toList());
+    await prefs.setString(_apodsKey, jsonString);
+    await prefs.setInt(_fetchedAtKey, DateTime.now().millisecondsSinceEpoch);
   }
 }
