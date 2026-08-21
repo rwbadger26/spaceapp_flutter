@@ -40,7 +40,7 @@ class _MoreScreenState extends State<MoreScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('More')),
+      appBar: AppBar(title: const Text('News'),),
       body: _isLoading
           ? const LoadingWidget()
           : RefreshIndicator(

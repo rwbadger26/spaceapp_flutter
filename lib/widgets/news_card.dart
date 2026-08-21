@@ -7,10 +7,35 @@ class NewsCard extends StatelessWidget {
 
   const NewsCard({super.key, required this.article});
 
-  Future<void> _openArticle() async {
+  Future<void> _openArticle(BuildContext context) async {
     if (article.url == null) return;
-    final uri = Uri.parse(article.url!);
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Open article?'),
+          content: Text('Open this ${article.source} story in the browser?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Open'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await launchUrl(
+        Uri.parse(article.url!),
+        mode: LaunchMode.externalApplication,
+      );
+    }
   }
 
   @override
@@ -20,15 +45,16 @@ class NewsCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
-        onTap: _openArticle,
+        onTap: () => _openArticle(context),
         borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (hasImage)
               ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
                 child: Image.network(
                   article.imageUrl!,
                   height: 160,
