@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/apod.dart';
+import '../services/bookmark_service.dart';
 
 class ApodCard extends StatefulWidget {
   final Apod apod;
@@ -19,28 +20,48 @@ class _ApodCardState extends State<ApodCard> {
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => _ApodFullScreen(
-          title: widget.apod.title,
-          imageUrl: imageUrl,
-        ),
+        builder: (_) =>
+            _ApodFullScreen(title: widget.apod.title, imageUrl: imageUrl),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = widget.apod.mediaType == 'image' && widget.apod.url != null;
+    final hasImage =
+        widget.apod.mediaType == 'image' && widget.apod.url != null;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (hasImage) _buildImage(),
-          _buildText(),
-        ],
+        children: [if (hasImage) _buildImage(), _buildText()],
       ),
     );
+  }
+
+  final BookmarkService _bookmarks = BookmarkService();
+  bool _isBookmarked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBookmark();
+  }
+
+  Future<void> _loadBookmark() async {
+    final saved = await _bookmarks.isBookmarked(widget.apod.date);
+    if (!mounted) return;
+    setState(() {
+      _isBookmarked = saved;
+    });
+  }
+
+  Future<void> _toggleBookmark() async {
+    await _bookmarks.toggle(widget.apod);
+    setState(() {
+      _isBookmarked = !_isBookmarked;
+    });
   }
 
   Widget _buildImage() {
@@ -89,13 +110,28 @@ class _ApodCardState extends State<ApodCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.apod.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.apod.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _toggleBookmark,
+                  icon: Icon(
+                    _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                    color: _isBookmarked
+                        ? const Color(0xFF64B5F6)
+                        : Colors.white54,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 6),
             Text(
@@ -117,8 +153,9 @@ class _ApodCardState extends State<ApodCard> {
             Text(
               widget.apod.explanation,
               maxLines: _isExpanded ? null : 3,
-              overflow:
-                  _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+              overflow: _isExpanded
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 15,
                 color: Colors.white70,
@@ -144,24 +181,14 @@ class _ApodFullScreen extends StatelessWidget {
   final String title;
   final String imageUrl;
 
-  const _ApodFullScreen({
-    required this.title,
-    required this.imageUrl,
-  });
+  const _ApodFullScreen({required this.title, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text(title),
-      ),
-      body: Center(
-        child: InteractiveViewer(
-          child: Image.network(imageUrl),
-        ),
-      ),
+      appBar: AppBar(backgroundColor: Colors.black, title: Text(title)),
+      body: Center(child: InteractiveViewer(child: Image.network(imageUrl))),
     );
   }
 }
