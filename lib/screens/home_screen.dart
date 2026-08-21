@@ -3,6 +3,7 @@ import '../models/apod.dart';
 import '../services/apod_service.dart';
 import '../widgets/apod_card.dart';
 import '../widgets/loading_error_widgets.dart';
+import 'bookmarks_screen.dart';
 
 /// Main feed screen.
 /// StatefulWidget is used because this screen must remember:
@@ -39,7 +40,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final apods = await _apodService.fetchRecentApods(forceRefresh: forceRefresh);
+      final apods = await _apodService.fetchRecentApods(
+        forceRefresh: forceRefresh,
+      );
 
       // setState tells Flutter: "data changed, please rebuild the UI"
       setState(() {
@@ -61,6 +64,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('CosmoPulse'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const BookmarksScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: _buildBody(),
     );
